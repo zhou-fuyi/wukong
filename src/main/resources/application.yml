@@ -1,0 +1,15 @@
+server:
+  port: ${SERVER_PORT:8087}
+spring:
+  application:
+    name: wukong-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  main:
+    #遇到相同名字是否允许覆盖注册
+    allow-bean-definition-overriding: true
+  mvn:
+    date-format: yyyy-MM-dd HH:mm:ss
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
