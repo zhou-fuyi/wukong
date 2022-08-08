@@ -93,6 +93,7 @@ public class BOUALayerNormalizeHandler extends AbstractLayerNormalizeHandler {
             featureCarriers.add(carrier);
         }
         redisTemplate.opsForList().leftPushAll(featureCachedKey, featureCarriers);
+        // 必须先设置数据, 而后再设定过期时间, 否则过期时间将无效
         redisTemplate.expire(featureCachedKey, TransformConstant.Cache.TIME_OUT, TimeUnit.MINUTES);
     }
 
