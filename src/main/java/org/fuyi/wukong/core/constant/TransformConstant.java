@@ -9,6 +9,8 @@ public interface TransformConstant {
 
     interface StrategyReference {
         String GDAL = "gdal";
+
+        boolean MERGE_FLAG = true;
     }
 
     interface Suffix {

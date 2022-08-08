@@ -2,7 +2,8 @@ package org.fuyi.wukong.core.context;
 
 import org.fuyi.wukong.core.LayerTransformResult;
 import org.fuyi.wukong.core.entity.LayerDefinition;
-import org.fuyi.wukong.core.handler.transform.LayerNormalizeHandler;
+import org.fuyi.wukong.core.handler.TransformHandler;
+import org.fuyi.wukong.core.handler.normalization.LayerNormalizeHandler;
 
 import java.util.*;
 
@@ -59,7 +60,7 @@ public class LayerTransformContext {
         this.result = result;
     }
 
-    public void pushHandler(LayerNormalizeHandler handler) {
+    public void pushHandler(TransformHandler handler) {
         handlerStack.add(handler.getClass().getSimpleName());
     }
 }

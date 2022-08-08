@@ -8,7 +8,7 @@ import org.fuyi.wukong.core.context.LayerTransformContext;
  * @time: 6/8/2022 9:56 pm
  * @since: 1.0
  **/
-public class SimpleLayerTransformCaptureHandler implements LayerTransformCaptureHandler{
+public class SimpleLayerNormalizationCaptureHandler implements LayerNormalizationCaptureHandler, LayerMergeCaptureHandler, LayerReleaseCaptureHandler {
     @Override
     public void execute(LayerTransformContext context) {
         context.setResult(DefaultLayerTransformResult.OK());

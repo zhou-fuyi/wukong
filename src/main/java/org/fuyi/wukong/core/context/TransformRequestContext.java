@@ -2,11 +2,14 @@ package org.fuyi.wukong.core.context;
 
 import org.fuyi.wukong.core.command.TransformCommand;
 import org.fuyi.wukong.core.entity.GridSet;
+import org.fuyi.wukong.core.entity.LayerDefinition;
 import org.fuyi.wukong.core.properties.TransformProperties;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author: <a href="mailto:thread.zhou@gmail.com">Fuyi</a>
@@ -20,6 +23,8 @@ public class TransformRequestContext {
     private TransformCommand transformCommand;
 
     private ApplicationContext applicationContext;
+
+    private Map<Object, LayerDefinition> layerDefinitionMap = new ConcurrentHashMap<>();
 
     public TransformRequestContext(Object identify, TransformProperties transformProperties, TransformCommand transformCommand, ApplicationContext applicationContext) {
         this.identify = identify;
@@ -90,7 +95,7 @@ public class TransformRequestContext {
     }
 
     public boolean isMerge() {
-        if (Objects.isNull(transformCommand.getMerge())){
+        if (Objects.isNull(transformCommand.getMerge())) {
             return transformProperties.isMerge();
         }
         return transformCommand.getMerge();
@@ -98,5 +103,19 @@ public class TransformRequestContext {
 
     public Object getIdentify() {
         return identify;
+    }
+
+    public void putLayerDefinition(LayerDefinition definition) {
+        if (!layerDefinitionMap.containsKey(definition.getLayerCode())) {
+            layerDefinitionMap.remove(definition.getLayerCode());
+        }
+        layerDefinitionMap.put(definition.getLayerCode(), definition);
+    }
+
+    public List<LayerDefinition> getLayerDefinitions() {
+        if (CollectionUtils.isEmpty(layerDefinitionMap)) {
+            return Collections.EMPTY_LIST;
+        }
+        return layerDefinitionMap.values().stream().collect(Collectors.toList());
     }
 }

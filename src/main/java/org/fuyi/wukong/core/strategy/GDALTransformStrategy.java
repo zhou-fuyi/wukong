@@ -1,7 +1,6 @@
 package org.fuyi.wukong.core.strategy;
 
-import org.fuyi.wukong.core.chain.LayerNormalizationChain;
-import org.fuyi.wukong.core.chain.SimpleLayerNormalizeChainFactory;
+import org.fuyi.wukong.core.chain.*;
 import org.fuyi.wukong.core.constant.TransformConstant;
 import org.fuyi.wukong.core.context.TransformRequestContext;
 import org.fuyi.wukong.core.datasource.SimpleLayerDataSource;
@@ -66,9 +65,10 @@ public class GDALTransformStrategy extends AbstractTransformStrategy {
                         logger.info("layer name is [{}]", layer.GetName());
                         logger.info("feature count is [{}]", layer.GetFeatureCount());
                         LayerDefinition layerDefinition = buildLayerDefinition(context, layer, source.getName());
-                        LayerNormalizationChain chain = SimpleLayerNormalizeChainFactory.createLayerTransformChain(context, layerDefinition);
+                        LayerNormalizationChain chain = SimpleLayerNormalizeChainFactory.createLayerNormalizationChain(context, layerDefinition);
                         try {
                             chain.doNormalize();
+                            context.putLayerDefinition(layerDefinition);
                         } catch (SQLException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
@@ -87,6 +87,7 @@ public class GDALTransformStrategy extends AbstractTransformStrategy {
                 }
             }
         });
+        logger.info("normalization finish.");
     }
 
     /**
@@ -98,7 +99,21 @@ public class GDALTransformStrategy extends AbstractTransformStrategy {
      */
     @Override
     protected void merge(TransformRequestContext context) {
-
+        logger.info("merge start.");
+        context.getLayerDefinitions().forEach(definition -> {
+            LayerMergeChain layerMergeChain = SimpleLayerMergeChainFactory.createLayerMergeChain(context, definition);
+            try {
+                layerMergeChain.doMerge();
+                context.putLayerDefinition(definition);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                layerMergeChain.release();
+            }
+        });
+        logger.info("merge finish.");
     }
 
     /**
@@ -108,7 +123,19 @@ public class GDALTransformStrategy extends AbstractTransformStrategy {
      */
     @Override
     protected void release(TransformRequestContext context) {
-
+        context.getLayerDefinitions().forEach(definition -> {
+            LayerReleaseChain releaseChain = SimpleLayerReleaseChainFactory.createLayerReleaseChain(context, definition);
+            try {
+                releaseChain.doRelease();
+                context.putLayerDefinition(definition);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                releaseChain.release();
+            }
+        });
     }
 
     /**

@@ -1,6 +1,6 @@
-package org.fuyi.wukong.core.handler.transform;
+package org.fuyi.wukong.core.handler.merge;
 
-import org.fuyi.wukong.core.chain.LayerNormalizationChain;
+import org.fuyi.wukong.core.chain.LayerMergeChain;
 import org.fuyi.wukong.core.context.LayerTransformContext;
 import org.fuyi.wukong.core.entity.LayerDefinition;
 import org.slf4j.Logger;
@@ -11,25 +11,25 @@ import java.sql.SQLException;
 
 /**
  * @author: <a href="mailto:thread.zhou@gmail.com">Fuyi</a>
- * @time: 6/8/2022 4:17 pm
+ * @time: 8/8/2022 10:11 pm
  * @since: 1.0
  **/
-public abstract class AbstractLayerNormalizeHandler implements LayerNormalizeHandler {
+public abstract class AbstractLayerMergeHandler implements LayerMergeHandler {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public void normalize(LayerTransformContext context, LayerDefinition definition, LayerNormalizationChain chain) throws IOException, SQLException {
+    public void merge(LayerTransformContext context, LayerDefinition definition, LayerMergeChain chain) throws IOException, SQLException {
         if (match(definition)) {
             try {
-                preNormalize(context, definition);
-                doNormalize(context, definition);
+                preMerge(context, definition);
+                doMerge(context, definition);
             } catch (Exception exception) {
                 logger.error(exception.getMessage());
                 exception.printStackTrace();
 
             } finally {
-                postNormalize(context, definition);
+                postMerge(context, definition);
             }
         }
     }
@@ -41,7 +41,7 @@ public abstract class AbstractLayerNormalizeHandler implements LayerNormalizeHan
      * @param context
      * @param definition
      */
-    protected void preNormalize(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException {
+    protected void preMerge(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException {
     }
 
 
@@ -51,7 +51,7 @@ public abstract class AbstractLayerNormalizeHandler implements LayerNormalizeHan
      * @param context
      * @param definition
      */
-    protected abstract void doNormalize(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException;
+    protected abstract void doMerge(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException;
 
     /**
      * 后置处理
@@ -59,7 +59,7 @@ public abstract class AbstractLayerNormalizeHandler implements LayerNormalizeHan
      * @param context
      * @param definition
      */
-    protected void postNormalize(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException {
+    protected void postMerge(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException {
         context.pushHandler(this);
     }
 }

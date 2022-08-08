@@ -1,9 +1,9 @@
 package org.fuyi.wukong.config;
 
 import org.fuyi.wukong.core.WuKongTransformManager;
+import org.fuyi.wukong.core.handler.capture.LayerNormalizationCaptureHandler;
 import org.fuyi.wukong.core.properties.TransformProperties;
-import org.fuyi.wukong.core.handler.capture.LayerTransformCaptureHandler;
-import org.fuyi.wukong.core.handler.capture.SimpleLayerTransformCaptureHandler;
+import org.fuyi.wukong.core.handler.capture.SimpleLayerNormalizationCaptureHandler;
 import org.fuyi.wukong.core.strategy.TransformStrategy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -32,9 +32,9 @@ public class AppConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(value = LayerTransformCaptureHandler.class)
-    public LayerTransformCaptureHandler layerTransformCaptureHandler() {
-        return new SimpleLayerTransformCaptureHandler();
+    @ConditionalOnMissingBean(value = LayerNormalizationCaptureHandler.class)
+    public LayerNormalizationCaptureHandler layerNormalizationCaptureHandler() {
+        return new SimpleLayerNormalizationCaptureHandler();
     }
 
     @Bean

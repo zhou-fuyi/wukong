@@ -1,4 +1,4 @@
-package org.fuyi.wukong.core.handler.transform.b;
+package org.fuyi.wukong.core.handler.normalization.b;
 
 import org.fuyi.wukong.core.constant.TransformConstant;
 import org.fuyi.wukong.core.context.LayerTransformContext;
@@ -7,7 +7,7 @@ import org.fuyi.wukong.core.datasource.SimpleLayerDataSourceDriver;
 import org.fuyi.wukong.core.entity.FeatureCarrier;
 import org.fuyi.wukong.core.entity.FieldDefinition;
 import org.fuyi.wukong.core.entity.LayerDefinition;
-import org.fuyi.wukong.core.handler.transform.AbstractLayerNormalizeHandler;
+import org.fuyi.wukong.core.handler.normalization.AbstractLayerNormalizeHandler;
 import org.fuyi.wukong.util.KeyGenerator;
 import org.gdal.ogr.*;
 import org.springframework.data.redis.core.BoundHashOperations;

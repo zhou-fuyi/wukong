@@ -9,6 +9,11 @@ import org.fuyi.wukong.core.context.TransformRequestContext;
  **/
 public abstract class AbstractTransformStrategy implements TransformStrategy {
 
+    /**
+     * 整体为同步框架, 但单独步骤上面的处理可以随意, 只要能保障整体的同步即可
+     *
+     * @param context
+     */
     @Override
     public void transform(TransformRequestContext context) {
         try {

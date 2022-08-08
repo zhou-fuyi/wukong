@@ -4,6 +4,8 @@ import org.fuyi.wukong.core.constant.TransformConstant;
 import org.fuyi.wukong.core.entity.GridSet;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import static org.fuyi.wukong.core.constant.TransformConstant.StrategyReference.MERGE_FLAG;
+
 /**
  * @author: <a href="mailto:thread.zhou@gmail.com">Fuyi</a>
  * @time: 2/8/2022 10:59 pm
@@ -28,7 +30,7 @@ public class TransformProperties {
 
     private String cachedPrefix = TransformConstant.Cache.PREFIX;
 
-    private boolean merge;
+    private boolean merge = MERGE_FLAG;
 
     public TransformProperties() {
     }
