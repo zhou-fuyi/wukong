@@ -50,16 +50,16 @@ public class LayerDefinition implements Serializable {
     private String layerCode;
 
     /**
-     * 存储格式，是为自定义格式，暂时仅支持PostGIS；意为最终数据的存储格式
+     * 释放格式
      */
-    private String storage;
+    private String release;
 
     private List<FieldDefinition> fieldDefinitions;
 
     public LayerDefinition() {
     }
 
-    public LayerDefinition(LayerDataSource dataSource, String origin, String scale, String sourceSpatialRef, String sinkSpatialRef, String featureCode, String name, String layerCode, String storage) {
+    public LayerDefinition(LayerDataSource dataSource, String origin, String scale, String sourceSpatialRef, String sinkSpatialRef, String featureCode, String name, String layerCode, String release) {
         this.dataSource = dataSource;
         this.origin = origin;
         this.scale = scale;
@@ -68,10 +68,10 @@ public class LayerDefinition implements Serializable {
         this.featureCode = featureCode;
         this.name = name;
         this.layerCode = layerCode;
-        this.storage = storage;
+        this.release = release;
     }
 
-    public LayerDefinition(LayerDataSource dataSource, String origin, String scale, String sourceSpatialRef, String sinkSpatialRef, String featureCode, String name, String layerCode, String storage, List<FieldDefinition> fieldDefinitions) {
+    public LayerDefinition(LayerDataSource dataSource, String origin, String scale, String sourceSpatialRef, String sinkSpatialRef, String featureCode, String name, String layerCode, String release, List<FieldDefinition> fieldDefinitions) {
         this.dataSource = dataSource;
         this.origin = origin;
         this.scale = scale;
@@ -80,7 +80,7 @@ public class LayerDefinition implements Serializable {
         this.featureCode = featureCode;
         this.name = name;
         this.layerCode = layerCode;
-        this.storage = storage;
+        this.release = release;
         this.fieldDefinitions = fieldDefinitions;
     }
 
@@ -148,12 +148,12 @@ public class LayerDefinition implements Serializable {
         this.layerCode = layerCode;
     }
 
-    public String getStorage() {
-        return storage;
+    public String getRelease() {
+        return release;
     }
 
-    public void setStorage(String storage) {
-        this.storage = storage;
+    public void setRelease(String release) {
+        this.release = release;
     }
 
     public List<FieldDefinition> getFieldDefinitions() {
@@ -175,7 +175,7 @@ public class LayerDefinition implements Serializable {
                 ", featureCode='" + featureCode + '\'' +
                 ", name='" + name + '\'' +
                 ", layerCode='" + layerCode + '\'' +
-                ", storage='" + storage + '\'' +
+                ", release='" + release + '\'' +
                 ", fieldDefinitions=" + fieldDefinitions +
                 '}';
     }

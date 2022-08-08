@@ -14,12 +14,15 @@ import java.util.Objects;
  * @since: 1.0
  **/
 public class TransformRequestContext {
+
+    private Object identify;
     private TransformProperties transformProperties;
     private TransformCommand transformCommand;
 
     private ApplicationContext applicationContext;
 
-    public TransformRequestContext(TransformProperties transformProperties, TransformCommand transformCommand, ApplicationContext applicationContext) {
+    public TransformRequestContext(Object identify, TransformProperties transformProperties, TransformCommand transformCommand, ApplicationContext applicationContext) {
+        this.identify = identify;
         this.transformProperties = transformProperties;
         this.transformCommand = transformCommand;
         this.applicationContext = applicationContext;
@@ -84,5 +87,16 @@ public class TransformRequestContext {
 
     public String getCachedPrefix() {
         return transformProperties.getCachedPrefix();
+    }
+
+    public boolean isMerge() {
+        if (Objects.isNull(transformCommand.getMerge())){
+            return transformProperties.isMerge();
+        }
+        return transformCommand.getMerge();
+    }
+
+    public Object getIdentify() {
+        return identify;
     }
 }

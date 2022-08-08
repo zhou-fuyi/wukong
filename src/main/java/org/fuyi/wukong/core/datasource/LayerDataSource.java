@@ -9,6 +9,8 @@ public interface LayerDataSource {
 
     LayerDataSourceDriver getDriver();
 
+    void setDriver(LayerDataSourceDriver driver);
+
     Object getIdentify();
 
     String getCatalog();
@@ -16,4 +18,16 @@ public interface LayerDataSource {
     String getSchema();
 
     String getTable();
+
+    String getCommonDefinitionKey();
+
+    void setCommonDefinitionKey(String commonDefinitionKey);
+
+    String getFieldDefinitionKey();
+
+    void setFieldDefinitionKey(String fieldDefinitionKey);
+
+    String getFeatureCarrierKey();
+
+    void setFeatureCarrierKey(String featureCarrierKey);
 }

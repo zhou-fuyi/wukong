@@ -1,13 +1,11 @@
 package org.fuyi.wukong.core.datasource;
 
-import java.util.Objects;
-
 /**
  * @author: <a href="mailto:thread.zhou@gmail.com">Fuyi</a>
  * @time: 6/8/2022 6:17 pm
  * @since: 1.0
  **/
-public class SimpleLayerDataSource implements LayerDataSource{
+public class SimpleLayerDataSource implements LayerDataSource {
 
     private LayerDataSourceDriver driver;
 
@@ -18,6 +16,21 @@ public class SimpleLayerDataSource implements LayerDataSource{
     private String schema;
 
     private String table;
+
+    /**
+     * 常规定义缓存的key
+     */
+    private String commonDefinitionKey;
+
+    /**
+     * 字段定义缓存的key
+     */
+    private String fieldDefinitionKey;
+
+    /**
+     * 要素载体缓存的key
+     */
+    private String featureCarrierKey;
 
     public SimpleLayerDataSource() {
     }
@@ -41,9 +54,25 @@ public class SimpleLayerDataSource implements LayerDataSource{
         this.table = table;
     }
 
+    public SimpleLayerDataSource(LayerDataSourceDriver driver, Object identify, String catalog, String schema, String table, String commonDefinitionKey, String fieldDefinitionKey, String featureCarrierKey) {
+        this.driver = driver;
+        this.identify = identify;
+        this.catalog = catalog;
+        this.schema = schema;
+        this.table = table;
+        this.commonDefinitionKey = commonDefinitionKey;
+        this.fieldDefinitionKey = fieldDefinitionKey;
+        this.featureCarrierKey = featureCarrierKey;
+    }
+
     @Override
     public LayerDataSourceDriver getDriver() {
         return driver;
+    }
+
+    @Override
+    public void setDriver(LayerDataSourceDriver driver) {
+        this.driver = driver;
     }
 
     @Override
@@ -56,9 +85,17 @@ public class SimpleLayerDataSource implements LayerDataSource{
         return catalog;
     }
 
+    public void setCatalog(String catalog) {
+        this.catalog = catalog;
+    }
+
     @Override
     public String getSchema() {
         return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
     @Override
@@ -66,17 +103,38 @@ public class SimpleLayerDataSource implements LayerDataSource{
         return table;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SimpleLayerDataSource that = (SimpleLayerDataSource) o;
-        return Objects.equals(driver, that.driver) && Objects.equals(identify, that.identify) && Objects.equals(catalog, that.catalog) && Objects.equals(schema, that.schema) && Objects.equals(table, that.table);
+    public void setTable(String table) {
+        this.table = table;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(driver, identify, catalog, schema, table);
+    public String getCommonDefinitionKey() {
+        return commonDefinitionKey;
+    }
+
+    @Override
+    public void setCommonDefinitionKey(String commonDefinitionKey) {
+        this.commonDefinitionKey = commonDefinitionKey;
+    }
+
+    @Override
+    public String getFieldDefinitionKey() {
+        return fieldDefinitionKey;
+    }
+
+    @Override
+    public void setFieldDefinitionKey(String fieldDefinitionKey) {
+        this.fieldDefinitionKey = fieldDefinitionKey;
+    }
+
+    @Override
+    public String getFeatureCarrierKey() {
+        return featureCarrierKey;
+    }
+
+    @Override
+    public void setFeatureCarrierKey(String featureCarrierKey) {
+        this.featureCarrierKey = featureCarrierKey;
     }
 
     @Override
@@ -87,6 +145,9 @@ public class SimpleLayerDataSource implements LayerDataSource{
                 ", catalog='" + catalog + '\'' +
                 ", schema='" + schema + '\'' +
                 ", table='" + table + '\'' +
+                ", commonDefinitionKey='" + commonDefinitionKey + '\'' +
+                ", fieldDefinitionKey='" + fieldDefinitionKey + '\'' +
+                ", featureCarrierKey='" + featureCarrierKey + '\'' +
                 '}';
     }
 }

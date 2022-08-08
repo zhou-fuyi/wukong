@@ -28,6 +28,8 @@ public class TransformProperties {
 
     private String cachedPrefix = TransformConstant.Cache.PREFIX;
 
+    private boolean merge;
+
     public TransformProperties() {
     }
 
@@ -93,5 +95,13 @@ public class TransformProperties {
 
     public void setCachedPrefix(String cachedPrefix) {
         this.cachedPrefix = cachedPrefix;
+    }
+
+    public boolean isMerge() {
+        return merge;
+    }
+
+    public void setMerge(boolean merge) {
+        this.merge = merge;
     }
 }

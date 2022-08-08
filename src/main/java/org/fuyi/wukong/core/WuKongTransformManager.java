@@ -4,6 +4,7 @@ import org.fuyi.wukong.core.command.TransformCommand;
 import org.fuyi.wukong.core.context.TransformRequestContext;
 import org.fuyi.wukong.core.properties.TransformProperties;
 import org.fuyi.wukong.core.strategy.TransformStrategy;
+import org.fuyi.wukong.util.CommonIDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -55,7 +56,7 @@ public class WuKongTransformManager implements ApplicationContextAware, Initiali
     }
 
     protected TransformRequestContext buildTransformContext(TransformCommand command) {
-        return new TransformRequestContext(transformProperties, command, context);
+        return new TransformRequestContext(CommonIDGenerator.next(), transformProperties, command, context);
     }
 
     @Override

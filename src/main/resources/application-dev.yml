@@ -1,7 +1,7 @@
 spring:
   redis:
     host: 127.0.0.1
-    port: 55001
-    username: default
-    password: redispw
+    port: 6379
+#    username: default
+#    password: redispw
     database: 0

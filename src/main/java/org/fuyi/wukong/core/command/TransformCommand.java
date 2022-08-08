@@ -15,6 +15,7 @@ import java.util.Map;
 public class TransformCommand implements Serializable {
 
     private static final long serialVersionUID = 1442076756860989030L;
+
     /**
      * 格网对象
      */
@@ -33,6 +34,8 @@ public class TransformCommand implements Serializable {
     private String suffix;
 
     private Map extras = Collections.EMPTY_MAP;
+
+    private Boolean merge;
 
     public TransformCommand() {
     }
@@ -101,14 +104,12 @@ public class TransformCommand implements Serializable {
         this.extras = extras;
     }
 
-    @Override
-    public String toString() {
-        return "TransformCommand{" +
-                "gridSet=" + gridSet +
-                ", reference=" + reference +
-                ", directory='" + directory + '\'' +
-                ", suffix='" + suffix + '\'' +
-                ", extras=" + extras +
-                '}';
+    public Boolean getMerge() {
+        return merge;
     }
+
+    public void setMerge(Boolean merge) {
+        this.merge = merge;
+    }
+
 }

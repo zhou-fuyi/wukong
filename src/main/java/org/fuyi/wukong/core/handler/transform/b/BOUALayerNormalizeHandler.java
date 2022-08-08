@@ -3,6 +3,7 @@ package org.fuyi.wukong.core.handler.transform.b;
 import org.fuyi.wukong.core.constant.TransformConstant;
 import org.fuyi.wukong.core.context.LayerTransformContext;
 import org.fuyi.wukong.core.datasource.LayerDataSource;
+import org.fuyi.wukong.core.datasource.SimpleLayerDataSourceDriver;
 import org.fuyi.wukong.core.entity.FeatureCarrier;
 import org.fuyi.wukong.core.entity.FieldDefinition;
 import org.fuyi.wukong.core.entity.LayerDefinition;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.fuyi.wukong.core.constant.FeatureClassificationConstant.B.ADMINISTRATIVE_REALM_AREA;
+import static org.fuyi.wukong.core.constant.TransformConstant.Cache.*;
+import static org.fuyi.wukong.core.constant.TransformConstant.DataSource.REDIS_DRIVER;
 
 /**
  * @author: <a href="mailto:thread.zhou@gmail.com">Fuyi</a>
@@ -47,21 +50,27 @@ public class BOUALayerNormalizeHandler extends AbstractLayerNormalizeHandler {
             FieldDefn fieldDefn = featureDefn.GetFieldDefn(index);
             logger.info("field name is {}, typeName is {}, fieldType is {}, fieldTypeName is {}, width is {}, Precision is {}", fieldDefn.GetNameRef(),
                     fieldDefn.GetTypeName(), fieldDefn.GetFieldType(), fieldDefn.GetFieldTypeName(fieldDefn.GetFieldType()), fieldDefn.GetWidth(), fieldDefn.GetPrecision());
-            fieldDefinitions.add(new FieldDefinition(fieldDefn.GetNameRef(), fieldDefn.GetFieldType(), fieldDefn.GetFieldTypeName(fieldDefn.GetFieldType()), fieldDefn.GetWidth(), fieldDefn.GetPrecision()));
+            fieldDefinitions.add(new FieldDefinition(fieldDefn.GetNameRef(), fieldDefn.GetFieldType(), fieldDefn.GetFieldTypeName(fieldDefn.GetFieldType()), fieldDefn.GetWidth(),
+                    fieldDefn.GetPrecision()));
         }
         definition.setFieldDefinitions(fieldDefinitions);
         logger.info("layerDefinition is {}", definition);
-        String definitionPrefixKey = KeyGenerator.cacheKeyGenerate(context.getRequestContext().getCachedPrefix(), definition.getFeatureCode(), definition.getLayerCode(), "definition");
-        if (!redisTemplate.hasKey(definitionPrefixKey)) {
-            BoundHashOperations boundHashOperations = redisTemplate.boundHashOps(definitionPrefixKey);
-            boundHashOperations.put("scale", definition.getScale());
-            boundHashOperations.put("sourceSpatialRef", definition.getSourceSpatialRef());
-            boundHashOperations.put("sinkSpatialRef", definition.getSinkSpatialRef());
-            boundHashOperations.put("storage", definition.getStorage());
+        String commonDefinitionKey = KeyGenerator.cacheKeyGenerate(context.getRequestContext().getCachedPrefix(), NORMALIZATION_SEGMENT, context.getRequestContext().getIdentify().toString(),
+                definition.getFeatureCode(), definition.getLayerCode(), LAYER_DEFINITION_KEY);
+        if (!redisTemplate.hasKey(commonDefinitionKey)) {
+            definition.getDataSource().setCommonDefinitionKey(commonDefinitionKey);
+            BoundHashOperations boundHashOperations = redisTemplate.boundHashOps(commonDefinitionKey);
+            boundHashOperations.put(LAYER_DEFINITION_HASH_SCALE_KEY, definition.getScale());
+            boundHashOperations.put(LAYER_DEFINITION_HASH_SOURCE_SPATIAL_REF_KEY, definition.getSourceSpatialRef());
+            boundHashOperations.put(LAYER_DEFINITION_HASH_SINK_SPATIAL_REF_KEY, definition.getSinkSpatialRef());
+            boundHashOperations.put(LAYER_DEFINITION_HASH_FEATURE_CODE_KEY, definition.getFeatureCode());
+            boundHashOperations.put(LAYER_DEFINITION_HASH_LAYER_CODE_KEY, definition.getLayerCode());
+            boundHashOperations.put(LAYER_DEFINITION_HASH_RELEASE_KEY, definition.getRelease());
             boundHashOperations.expire(TransformConstant.Cache.TIME_OUT, TimeUnit.MINUTES);
         }
-        String fieldDefinitionPrefixKey = KeyGenerator.cacheKeyGenerate(definitionPrefixKey, "fields");
+        String fieldDefinitionPrefixKey = KeyGenerator.cacheKeyGenerate(commonDefinitionKey, LAYER_DEFINITION_FIELD_KEY);
         if (!redisTemplate.hasKey(fieldDefinitionPrefixKey)) {
+            definition.getDataSource().setFieldDefinitionKey(fieldDefinitionPrefixKey);
             BoundSetOperations boundSetOperations = redisTemplate.boundSetOps(fieldDefinitionPrefixKey);
             fieldDefinitions.forEach(fieldDefinition -> boundSetOperations.add(fieldDefinition));
             boundSetOperations.expire(TransformConstant.Cache.TIME_OUT, TimeUnit.MINUTES);
@@ -73,7 +82,9 @@ public class BOUALayerNormalizeHandler extends AbstractLayerNormalizeHandler {
         LayerDataSource dataSource = definition.getDataSource();
         Layer layer = dataSource.getDriver().unwrap(Layer.class);
         List<FeatureCarrier> featureCarriers = new ArrayList<>((int) layer.GetFeatureCount());
-        String featureCachedKey = KeyGenerator.cacheKeyGenerate(context.getRequestContext().getCachedPrefix(), definition.getFeatureCode(), definition.getLayerCode(), "features");
+        String featureCachedKey = KeyGenerator.cacheKeyGenerate(context.getRequestContext().getCachedPrefix(), NORMALIZATION_SEGMENT, context.getRequestContext().getIdentify().toString(),
+                definition.getFeatureCode(), definition.getLayerCode(), LAYER_FEATURE_KEY);
+        definition.getDataSource().setFeatureCarrierKey(featureCachedKey);
         Feature feature = null;
         while ((feature = layer.GetNextFeature()) != null) {
             Geometry geometry = feature.GetGeometryRef();
@@ -83,6 +94,11 @@ public class BOUALayerNormalizeHandler extends AbstractLayerNormalizeHandler {
         }
         redisTemplate.opsForList().leftPushAll(featureCachedKey, featureCarriers);
         redisTemplate.expire(featureCachedKey, TransformConstant.Cache.TIME_OUT, TimeUnit.MINUTES);
+    }
+
+    @Override
+    protected void postNormalize(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException {
+        definition.getDataSource().setDriver(new SimpleLayerDataSourceDriver(redisTemplate, REDIS_DRIVER));
     }
 
     @Override

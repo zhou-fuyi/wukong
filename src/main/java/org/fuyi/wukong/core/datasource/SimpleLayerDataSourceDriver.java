@@ -12,8 +12,15 @@ public class SimpleLayerDataSourceDriver implements LayerDataSourceDriver{
 
     private Object instance;
 
-    public SimpleLayerDataSourceDriver(Object instance) {
+    private String name;
+
+    public SimpleLayerDataSourceDriver(Object instance, String name) {
         this.instance = instance;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
