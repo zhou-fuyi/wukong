@@ -15,9 +15,15 @@ public interface LayerDataSource {
 
     String getCatalog();
 
+    void setCatalog(String catalog);
+
     String getSchema();
 
+    void setSchema(String schema);
+
     String getTable();
+
+    void setTable(String table);
 
     String getCommonDefinitionKey();
 

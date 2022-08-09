@@ -57,8 +57,9 @@ public class BOUALayerNormalizeHandler extends AbstractLayerNormalizeHandler {
         logger.info("layerDefinition is {}", definition);
         String commonDefinitionKey = KeyGenerator.cacheKeyGenerate(context.getRequestContext().getCachedPrefix(), NORMALIZATION_SEGMENT, context.getRequestContext().getIdentify().toString(),
                 definition.getFeatureCode(), definition.getLayerCode(), LAYER_DEFINITION_KEY);
+        // 无比保证写入key的正确性
+        definition.getDataSource().setCommonDefinitionKey(commonDefinitionKey);
         if (!redisTemplate.hasKey(commonDefinitionKey)) {
-            definition.getDataSource().setCommonDefinitionKey(commonDefinitionKey);
             BoundHashOperations boundHashOperations = redisTemplate.boundHashOps(commonDefinitionKey);
             boundHashOperations.put(LAYER_DEFINITION_HASH_SCALE_KEY, definition.getScale());
             boundHashOperations.put(LAYER_DEFINITION_HASH_SOURCE_SPATIAL_REF_KEY, definition.getSourceSpatialRef());
@@ -69,8 +70,8 @@ public class BOUALayerNormalizeHandler extends AbstractLayerNormalizeHandler {
             boundHashOperations.expire(TransformConstant.Cache.TIME_OUT, TimeUnit.MINUTES);
         }
         String fieldDefinitionPrefixKey = KeyGenerator.cacheKeyGenerate(commonDefinitionKey, LAYER_DEFINITION_FIELD_KEY);
+        definition.getDataSource().setFieldDefinitionKey(fieldDefinitionPrefixKey);
         if (!redisTemplate.hasKey(fieldDefinitionPrefixKey)) {
-            definition.getDataSource().setFieldDefinitionKey(fieldDefinitionPrefixKey);
             BoundSetOperations boundSetOperations = redisTemplate.boundSetOps(fieldDefinitionPrefixKey);
             fieldDefinitions.forEach(fieldDefinition -> boundSetOperations.add(fieldDefinition));
             boundSetOperations.expire(TransformConstant.Cache.TIME_OUT, TimeUnit.MINUTES);

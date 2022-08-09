@@ -1,6 +1,7 @@
 package org.fuyi.wukong.core.context;
 
 import org.fuyi.wukong.core.command.TransformCommand;
+import org.fuyi.wukong.core.datasource.LayerDataSource;
 import org.fuyi.wukong.core.entity.GridSet;
 import org.fuyi.wukong.core.entity.LayerDefinition;
 import org.fuyi.wukong.core.properties.TransformProperties;
@@ -31,6 +32,10 @@ public class TransformRequestContext {
         this.transformProperties = transformProperties;
         this.transformCommand = transformCommand;
         this.applicationContext = applicationContext;
+    }
+
+    public TransformProperties getTransformProperties() {
+        return transformProperties;
     }
 
     public GridSet getGridSet() {
@@ -106,7 +111,8 @@ public class TransformRequestContext {
     }
 
     public void putLayerDefinition(LayerDefinition definition) {
-        if (!layerDefinitionMap.containsKey(definition.getLayerCode())) {
+        if (layerDefinitionMap.containsKey(definition.getLayerCode())) {
+//            definition.setDataSource(layerDefinitionMap.get(definition.getLayerCode()).getDataSource());
             layerDefinitionMap.remove(definition.getLayerCode());
         }
         layerDefinitionMap.put(definition.getLayerCode(), definition);

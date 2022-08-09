@@ -5,3 +5,9 @@ spring:
 #    username: default
 #    password: redispw
     database: 0
+
+wu-kong:
+  transform:
+    layer-merge:
+      db-mapping:
+        default: Pg:dbname=wukong host=127.0.0.1 user=postgres password=gis4490 port=5432

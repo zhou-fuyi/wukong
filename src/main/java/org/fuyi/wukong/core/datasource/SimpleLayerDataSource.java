@@ -85,6 +85,7 @@ public class SimpleLayerDataSource implements LayerDataSource {
         return catalog;
     }
 
+    @Override
     public void setCatalog(String catalog) {
         this.catalog = catalog;
     }
@@ -94,6 +95,7 @@ public class SimpleLayerDataSource implements LayerDataSource {
         return schema;
     }
 
+    @Override
     public void setSchema(String schema) {
         this.schema = schema;
     }
@@ -103,6 +105,7 @@ public class SimpleLayerDataSource implements LayerDataSource {
         return table;
     }
 
+    @Override
     public void setTable(String table) {
         this.table = table;
     }

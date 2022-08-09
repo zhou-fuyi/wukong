@@ -11,7 +11,7 @@ import static org.fuyi.wukong.core.constant.TransformConstant.StrategyReference.
  * @time: 2/8/2022 10:59 pm
  * @since: 1.0
  **/
-@ConfigurationProperties(prefix = "wukong.transform")
+@ConfigurationProperties(prefix = "wu-kong.transform")
 public class TransformProperties {
 
     private GridSet gridSet;
@@ -31,6 +31,8 @@ public class TransformProperties {
     private String cachedPrefix = TransformConstant.Cache.PREFIX;
 
     private boolean merge = MERGE_FLAG;
+
+    private LayerMergeHandlerProperties layerMerge;
 
     public TransformProperties() {
     }
@@ -105,5 +107,13 @@ public class TransformProperties {
 
     public void setMerge(boolean merge) {
         this.merge = merge;
+    }
+
+    public LayerMergeHandlerProperties getLayerMerge() {
+        return layerMerge;
+    }
+
+    public void setLayerMerge(LayerMergeHandlerProperties layerMerge) {
+        this.layerMerge = layerMerge;
     }
 }
