@@ -7,6 +7,7 @@ import org.fuyi.wukong.core.entity.FeatureCarrier;
 import org.fuyi.wukong.core.entity.FieldDefinition;
 import org.fuyi.wukong.core.entity.LayerDefinition;
 import org.fuyi.wukong.core.handler.merge.AbstractLayerMergeHandler;
+import org.fuyi.wukong.util.FeatureUtil;
 import org.fuyi.wukong.util.StringUtil;
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.*;
@@ -19,6 +20,7 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.fuyi.wukong.core.constant.FeatureClassificationConstant.B.ADMINISTRATIVE_REALM_AREA;
 import static org.fuyi.wukong.core.constant.TransformConstant.Cache.LAYER_DEFINITION_HASH_SOURCE_SPATIAL_REF_KEY;
@@ -71,8 +73,7 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
         if (workspace == null) {
             throw new RuntimeException("[" + dbPath + "] 无法获取链接");
         }
-        String layerName = definition.getFeatureCode() + "_" + definition.getLayerCode() + "_" + context.getRequestContext().getIdentify();
-        layerName = StringUtil.replaceAllFirstNumber(layerName);
+        String layerName = getDefaultLayerName(context, definition);
         if (workspace.TestCapability(ogr.ODsCCreateLayer) == false) {
             logger.error(
                     "CreateLayer not supported by driver.");
@@ -175,12 +176,127 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
 
     @Override
     protected void doMerge(LayerTransformContext context, LayerDefinition definition) throws IOException, SQLException {
-        logger.warn("do nothing here.");
+
         /**
          * 1. 去除非中国范围内的境界数据
          *
          * 2. 根据行政编码进行空间数据合并(先合并插入, 后删除)
          */
+        String dbPath = obtainMergeDBMapping(context.getRequestContext());
+        DataSource workspace = ogr.Open(dbPath, true);
+        if (workspace == null) {
+            throw new RuntimeException("[" + dbPath + "] 无法获取链接");
+        }
+        String layerName = getDefaultLayerName(context, definition);
+        Layer layer = workspace.GetLayer(layerName);
+        if (layer == null) {
+            throw new RuntimeException(String.format("Unable to get layer [%s]", layerName));
+        }
+        // 剔除境外境区
+        workspace.ExecuteSQL(String.format("delete from %s where pac < %d or pac = %d", layerName, 100000, 250100));
+
+        // 挑选出name重复的数据
+        String nameDuplicateFilterSql = String.format("select a.* from %s a, (select name, count(*) _count from %s group by name) b where b._count > 1 and a.name = b.name", layerName, layerName);
+        Layer nameDuplicateDataLayer = workspace.ExecuteSQL(nameDuplicateFilterSql);
+        if (nameDuplicateDataLayer.GetFeatureCount() > 0) {
+            Map<String, Feature> featureMap = new HashMap<>();
+            Feature feature = null;
+            while ((feature = nameDuplicateDataLayer.GetNextFeature()) != null) {
+                String name = feature.GetFieldAsString("name");
+                if (!StringUtils.hasText(name)){
+                    logger.warn("name is empty");
+                }
+                if (featureMap.containsKey(name)) {
+                    Feature cachedFeature = featureMap.get(name);
+                    if (Objects.nonNull(feature.GetGeometryRef())) {
+
+                        Geometry geometry = feature.GetGeometryRef();
+                        int count = geometry.GetGeometryCount();
+                        for (int index = 0; index < count; index++) {
+                            cachedFeature.GetGeometryRef().AddGeometry(geometry.GetGeometryRef(index));
+                        }
+                    }
+                } else {
+                    featureMap.put(name, feature.Clone());
+                }
+                layer.DeleteFeature(feature.GetFID());
+                feature.delete();
+            }
+            nameDuplicateDataLayer.delete();
+            featureMap.values().forEach(other -> {
+                other.GetGeometryRef().UnionCascaded();
+            });
+            if (nGroupTransactions > 0) {
+                layer.StartTransaction();
+                layer.CommitTransaction();
+                layer.StartTransaction();
+            }
+            int nFeaturesInTransaction = 0;
+            List<Feature> features = featureMap.values().stream().collect(Collectors.toList());
+            for (int i = 0; i < featureMap.values().size(); i++) {
+                if (++nFeaturesInTransaction == nGroupTransactions) {
+                    layer.CommitTransaction();
+                    layer.StartTransaction();
+                    nFeaturesInTransaction = 0;
+                }
+                Feature restoredFeature = features.get(i);
+                layer.CreateFeature(restoredFeature);
+                restoredFeature.delete();
+            }
+            if (nGroupTransactions > 0)
+                layer.CommitTransaction();
+        }
+
+        // 挑选出pac重复的数据
+        String duplicateFilterSql = String.format("select a.* from %s a, (select pac, count(*) _count from %s group by pac) b where b._count > 1 and a.pac = b.pac", layerName, layerName);
+        Layer duplicateDataLayer = workspace.ExecuteSQL(duplicateFilterSql);
+        if (duplicateDataLayer.GetFeatureCount() > 0) {
+            Map<Integer, Feature> featureMap = new HashMap<>();
+            Feature feature = null;
+            while ((feature = duplicateDataLayer.GetNextFeature()) != null) {
+                Integer pac = feature.GetFieldAsInteger("pac");
+                if (featureMap.containsKey(pac)) {
+                    Feature cachedFeature = featureMap.get(pac);
+                    if (Objects.nonNull(feature.GetGeometryRef())) {
+                        Geometry geometry = feature.GetGeometryRef();
+                        int count = geometry.GetGeometryCount();
+                        for (int index = 0; index < count; index++) {
+                            cachedFeature.GetGeometryRef().AddGeometry(geometry.GetGeometryRef(index));
+                        }
+                    }
+                } else {
+                    featureMap.put(pac, feature.Clone());
+                }
+                layer.DeleteFeature(feature.GetFID());
+                feature.delete();
+            }
+            duplicateDataLayer.delete();
+            featureMap.values().forEach(other -> {
+                other.GetGeometryRef().UnionCascaded();
+            });
+            if (nGroupTransactions > 0) {
+                layer.StartTransaction();
+                layer.CommitTransaction();
+                layer.StartTransaction();
+            }
+            int nFeaturesInTransaction = 0;
+            List<Feature> features = featureMap.values().stream().collect(Collectors.toList());
+            for (int i = 0; i < featureMap.values().size(); i++) {
+                if (++nFeaturesInTransaction == nGroupTransactions) {
+                    layer.CommitTransaction();
+                    layer.StartTransaction();
+                    nFeaturesInTransaction = 0;
+                }
+                Feature restoredFeature = features.get(i);
+                layer.CreateFeature(restoredFeature);
+                restoredFeature.delete();
+            }
+            if (nGroupTransactions > 0)
+                layer.CommitTransaction();
+        }
+
+        layer.delete();
+        workspace.delete();
     }
 
     protected String obtainMergeDBMapping(TransformRequestContext context) {
@@ -201,5 +317,16 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
                 feature.SetField(fieldDefinition.getName(), carrier.getFields().get(fieldDefinition.getName()).toString());
             }
         });
+    }
+
+    protected String getDefaultLayerName(LayerTransformContext context, LayerDefinition definition) {
+        SpatialReference spatialReference = new SpatialReference(definition.getSourceSpatialRef());
+        String layerName = definition.getFeatureCode() + "_" + definition.getLayerCode()
+                + "_" + context.getRequestContext().getIdentify().toString().replaceAll("-", "");
+        if (Objects.nonNull(spatialReference)) {
+            layerName = layerName + "_" + spatialReference.GetName();
+        }
+        layerName = StringUtil.replaceAllFirstNumber(layerName).toLowerCase(Locale.ROOT);
+        return layerName;
     }
 }
