@@ -193,9 +193,12 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
         }
         // 剔除境外境区
         workspace.ExecuteSQL(String.format("delete from %s where pac < %d or pac = %d", layerName, 100000, 250100));
+        // 删除无效的空间对象(格网)
+        workspace.ExecuteSQL(String.format("delete from %s where ST_IsValid(wkb_geometry) = false", layerName));
 
         // 挑选出pac重复的数据
-        String duplicateFilterSql = String.format("select a.* from %s a, (select pac, count(*) _count from %s group by pac) b where b._count > 1 and a.pac = b.pac", layerName, layerName);
+//        String duplicateFilterSql = String.format("select a.* from %s a, (select pac, count(*) _count from %s group by pac) b where b._count > 1 and a.pac = b.pac", layerName, layerName);
+        String duplicateFilterSql = String.format("select a.* from %s a, (select name, pac, count(*) _count from %s group by pac, name) b where b._count > 1 and a.pac = b.pac and a.name = b.name", layerName, layerName);
         Layer duplicateDataLayer = workspace.ExecuteSQL(duplicateFilterSql);
         logger.info("duplicate pac count is {}", duplicateDataLayer.GetFeatureCount());
         if (duplicateDataLayer.GetFeatureCount() > 0) {
@@ -221,8 +224,20 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
             }
             duplicateDataLayer.delete();
             featureMap.values().forEach(other -> {
+                int pac = other.GetFieldAsInteger("pac");
+                Geometry unionCascaded = other.GetGeometryRef().UnionCascaded();
+                logger.info("Pac is {}, Type is {}, Count is {}", pac, unionCascaded.GetGeometryName(), unionCascaded.GetGeometryCount());
+                int count = unionCascaded.GetGeometryCount();
+                if (count > 1) {
+                    Geometry union = ogr.ForceToPolygon(unionCascaded.GetGeometryRef(0));
+                    for (int index = 1; index < count; index++) {
+                        union = union.Union(ogr.ForceToPolygon(unionCascaded.GetGeometryRef(index)));
+                    }
+                    unionCascaded = union;
+                    logger.info("after union: type is {}, count is {}", unionCascaded.GetGeometryName(), unionCascaded.GetGeometryCount());
+                }
                 // 将合并对象强制使用MultiPolygon格式进行表达（成功合并后的数据可能会是Polygon格式, 不利于格式统一, 同时会破坏约定格式, 进而导致后续动作失败）
-                other.SetGeometry(ogr.ForceToMultiPolygon(other.GetGeometryRef().UnionCascaded()));
+                other.SetGeometry(ogr.ForceToMultiPolygon(unionCascaded.MakeValid()));
             });
             if (nGroupTransactions > 0) {
                 layer.StartTransaction();
@@ -246,59 +261,59 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
         }
 
         // 挑选出name重复的数据
-        String nameDuplicateFilterSql = String.format("select a.* from %s a, (select name, count(*) _count from %s group by name) b where b._count > 1 and a.name = b.name", layerName, layerName);
-        Layer nameDuplicateDataLayer = workspace.ExecuteSQL(nameDuplicateFilterSql);
-        logger.info("duplicate name count is {}", nameDuplicateDataLayer.GetFeatureCount());
-        if (nameDuplicateDataLayer.GetFeatureCount() > 0) {
-            Map<String, Feature> featureMap = new HashMap<>();
-            Feature feature = null;
-            while ((feature = nameDuplicateDataLayer.GetNextFeature()) != null) {
-                String name = feature.GetFieldAsString("name");
-                if (!StringUtils.hasText(name)){
-                    logger.warn("name is empty");
-                }
-                if (featureMap.containsKey(name)) {
-                    Feature cachedFeature = featureMap.get(name);
-                    if (Objects.nonNull(feature.GetGeometryRef())) {
-
-                        Geometry geometry = feature.GetGeometryRef();
-                        // 假定给定的空间对象都是MultiPolygon类型, 如果给定的类型不一致, 那么此处将会出现问题（假定也是约定, 所以这里没有进行类型判断）
-                        int count = geometry.GetGeometryCount();
-                        for (int index = 0; index < count; index++) {
-                            cachedFeature.GetGeometryRef().AddGeometry(geometry.GetGeometryRef(index));
-                        }
-                    }
-                } else {
-                    featureMap.put(name, feature.Clone());
-                }
-                layer.DeleteFeature(feature.GetFID());
-                feature.delete();
-            }
-            nameDuplicateDataLayer.delete();
-            featureMap.values().forEach(other -> {
-                // 将合并对象强制使用MultiPolygon格式进行表达（成功合并后的数据可能会是Polygon格式, 不利于格式统一, 同时会破坏约定格式, 进而导致后续动作失败）
-                other.SetGeometry(ogr.ForceToMultiPolygon(other.GetGeometryRef().UnionCascaded()));
-            });
-            if (nGroupTransactions > 0) {
-                layer.StartTransaction();
-                layer.CommitTransaction();
-                layer.StartTransaction();
-            }
-            int nFeaturesInTransaction = 0;
-            List<Feature> features = featureMap.values().stream().collect(Collectors.toList());
-            for (int i = 0; i < featureMap.values().size(); i++) {
-                if (++nFeaturesInTransaction == nGroupTransactions) {
-                    layer.CommitTransaction();
-                    layer.StartTransaction();
-                    nFeaturesInTransaction = 0;
-                }
-                Feature restoredFeature = features.get(i);
-                layer.CreateFeature(restoredFeature);
-                restoredFeature.delete();
-            }
-            if (nGroupTransactions > 0)
-                layer.CommitTransaction();
-        }
+//        String nameDuplicateFilterSql = String.format("select a.* from %s a, (select name, count(*) _count from %s group by name) b where b._count > 1 and a.name = b.name", layerName, layerName);
+//        Layer nameDuplicateDataLayer = workspace.ExecuteSQL(nameDuplicateFilterSql);
+//        logger.info("duplicate name count is {}", nameDuplicateDataLayer.GetFeatureCount());
+//        if (nameDuplicateDataLayer.GetFeatureCount() > 0) {
+//            Map<String, Feature> featureMap = new HashMap<>();
+//            Feature feature = null;
+//            while ((feature = nameDuplicateDataLayer.GetNextFeature()) != null) {
+//                String name = feature.GetFieldAsString("name");
+//                if (!StringUtils.hasText(name)){
+//                    logger.warn("name is empty");
+//                }
+//                if (featureMap.containsKey(name)) {
+//                    Feature cachedFeature = featureMap.get(name);
+//                    if (Objects.nonNull(feature.GetGeometryRef())) {
+//
+//                        Geometry geometry = feature.GetGeometryRef();
+//                        // 假定给定的空间对象都是MultiPolygon类型, 如果给定的类型不一致, 那么此处将会出现问题（假定也是约定, 所以这里没有进行类型判断）
+//                        int count = geometry.GetGeometryCount();
+//                        for (int index = 0; index < count; index++) {
+//                            cachedFeature.GetGeometryRef().AddGeometry(geometry.GetGeometryRef(index));
+//                        }
+//                    }
+//                } else {
+//                    featureMap.put(name, feature.Clone());
+//                }
+//                layer.DeleteFeature(feature.GetFID());
+//                feature.delete();
+//            }
+//            nameDuplicateDataLayer.delete();
+//            featureMap.values().forEach(other -> {
+//                // 将合并对象强制使用MultiPolygon格式进行表达（成功合并后的数据可能会是Polygon格式, 不利于格式统一, 同时会破坏约定格式, 进而导致后续动作失败）
+//                other.SetGeometry(ogr.ForceToMultiPolygon(other.GetGeometryRef().UnionCascaded()));
+//            });
+//            if (nGroupTransactions > 0) {
+//                layer.StartTransaction();
+//                layer.CommitTransaction();
+//                layer.StartTransaction();
+//            }
+//            int nFeaturesInTransaction = 0;
+//            List<Feature> features = featureMap.values().stream().collect(Collectors.toList());
+//            for (int i = 0; i < featureMap.values().size(); i++) {
+//                if (++nFeaturesInTransaction == nGroupTransactions) {
+//                    layer.CommitTransaction();
+//                    layer.StartTransaction();
+//                    nFeaturesInTransaction = 0;
+//                }
+//                Feature restoredFeature = features.get(i);
+//                layer.CreateFeature(restoredFeature);
+//                restoredFeature.delete();
+//            }
+//            if (nGroupTransactions > 0)
+//                layer.CommitTransaction();
+//        }
 
         layer.delete();
         workspace.delete();
