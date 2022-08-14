@@ -194,7 +194,7 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
         // 剔除境外境区
         workspace.ExecuteSQL(String.format("delete from %s where pac < %d or pac = %d", layerName, 100000, 250100));
         // 删除无效的空间对象(格网)
-        workspace.ExecuteSQL(String.format("delete from %s where ST_IsValid(wkb_geometry) = false", layerName));
+//        workspace.ExecuteSQL(String.format("delete from %s where ST_IsValid(wkb_geometry) = false", layerName));
 
         // 挑选出pac重复的数据
 //        String duplicateFilterSql = String.format("select a.* from %s a, (select pac, count(*) _count from %s group by pac) b where b._count > 1 and a.pac = b.pac", layerName, layerName);
@@ -213,6 +213,7 @@ public class BOUALayerMergeHandler extends AbstractLayerMergeHandler {
                         // 假定给定的空间对象都是MultiPolygon类型, 如果给定的类型不一致, 那么此处将会出现问题（假定也是约定, 所以这里没有进行类型判断）
                         int count = geometry.GetGeometryCount();
                         for (int index = 0; index < count; index++) {
+                            geometry.GetGeometryRef(index).CloseRings();
                             cachedFeature.GetGeometryRef().AddGeometry(geometry.GetGeometryRef(index));
                         }
                     }
