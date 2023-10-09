@@ -10,4 +10,4 @@ wu-kong:
   transform:
     layer-merge:
       db-mapping:
-        default: Pg:dbname=wukong host=127.0.0.1 user=postgres password=gis4490 port=5432
+        default: Pg:dbname=wukong host=127.0.0.1 user=postgres password=gis@4490 port=5432

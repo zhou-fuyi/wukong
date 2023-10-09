@@ -13,7 +13,7 @@
         <maven.compiler.target>11</maven.compiler.target>
 
         <spring-boot.version>2.7.2</spring-boot.version>
-        <gdal.version>3.5.0</gdal.version>
+        <gdal.version>3.6.0</gdal.version>
     </properties>
 
     <dependencies>
