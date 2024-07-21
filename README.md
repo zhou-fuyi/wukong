@@ -44,7 +44,7 @@
 
 数据分层的命名采用四个字符，第一个字符代表数据分类，第二三个字符是数据内容的缩写，第四个字符代表几何类型。
 
-![数据分层](https://img.zhoujian.site/images/202310092210356.png)
+![202310092210356](https://zhou-fuyi.github.io/picx-images-hosting/202310092210356.1aoqvla971.webp)
 
 ## 目标
 
@@ -183,7 +183,7 @@ LayerDefinition由如下几个关键要素组成：
 
 #### 结构拆解图
 
-![](https://img.zhoujian.site/images/202310092222086.png)
+![202310092222086](https://zhou-fuyi.github.io/picx-images-hosting/202310092222086.4xuaj4ohrv.webp)
 
 ## 实施
 
@@ -212,7 +212,7 @@ debian 11 testing，自行编译gdal程序
 
 下图是经过pac,name合并后的数据（并去除了境外与海洋数据），如图可见，仍然存在些许裂缝
 
-![](https://img.zhoujian.site/images/202310092229437.png)
+![202310092229437](https://zhou-fuyi.github.io/picx-images-hosting/202310092229437.6pn9e17uo0.webp)
 
 经过排查发现，发现部分原始图副之间便存在裂缝，且该裂缝的两边不一定是平行的。那么这就会导致合并出现两种情况
 
@@ -232,7 +232,7 @@ debian 11 testing，自行编译gdal程序
 
 即将分离的图幅数据提取到统一位置存放，坐标本来就是统一的，不需要额外操作
 
-![](https://img.zhoujian.site/images/202310092231964.png)
+![202310092231964](https://zhou-fuyi.github.io/picx-images-hosting/202310092231964.5mnk35c0sk.webp)
 
 ### 去除无效区域与数据
 
@@ -240,15 +240,15 @@ debian 11 testing，自行编译gdal程序
 - 去除海域面数据（pac = 250100）
 - 去除空间无效数据（`ST_IsValid(geometry)==false`）
 
-![](https://img.zhoujian.site/images/202310092232208.png)
+![202310092232208](https://zhou-fuyi.github.io/picx-images-hosting/202310092232208.1lbkor7xfu.webp)
 
 ### 合并处理
 
 即进行图幅合并（使用pac与name）
 
-![](https://img.zhoujian.site/images/202310092237845.png)
+![202310092237845](https://zhou-fuyi.github.io/picx-images-hosting/202310092237845.1ov6mh105s.webp)
 
-![](https://img.zhoujian.site/images/202310092314308.png)
+![202310092314308](https://zhou-fuyi.github.io/picx-images-hosting/202310092314308.101x2gdh6r.webp)
 
 > 💡 从此处可以发现，部分区域存在裂缝。 \
 > 1、pac=632722\
@@ -263,13 +263,13 @@ debian 11 testing，自行编译gdal程序
 
 
 #### ArcGIS
-![](https://img.zhoujian.site/images/202310092242009.png)
+![202310092242009](https://zhou-fuyi.github.io/picx-images-hosting/202310092242009.3ye75ylqmv.webp)
 
 #### QGIS
-![](https://img.zhoujian.site/images/202310092242600.png)
+![202310092242600](https://zhou-fuyi.github.io/picx-images-hosting/202310092242600.2h8247hlwe.webp)
 
 #### wukong
-![](https://img.zhoujian.site/images/202310092243119.png)
+![202310092243119](https://zhou-fuyi.github.io/picx-images-hosting/202310092243119.b8nifpy5g.webp)
 
 ### Source Code
 
@@ -297,9 +297,9 @@ debian 11 testing，自行编译gdal程序
 
 纬度：0~56（N），A~N（14）
 
-![](https://img.zhoujian.site/images/202310092249727.png)
+![202310092249727](https://zhou-fuyi.github.io/picx-images-hosting/202310092249727.6m3ngberzc.webp)
 
-![](https://img.zhoujian.site/images/202310092249838.png)
+![202310092249838](https://zhou-fuyi.github.io/picx-images-hosting/202310092249838.3d4jjnracw.webp)
 
 ### **[GB/T 33183-2016 基础地理信息 1:50 000地形要素数据规范](https://openstd.samr.gov.cn/bzgk/gb/newGbInfo?hcno=95CAA9D86228B35440B422107DDF4FAC)**
 
@@ -307,15 +307,15 @@ debian 11 testing，自行编译gdal程序
 
 - 境界与政区
 
-![](https://img.zhoujian.site/images/202310092250624.png)
+![202310092250624](https://zhou-fuyi.github.io/picx-images-hosting/202310092250624.pf39ay913.webp)
 
 - 地名
 
-![](https://img.zhoujian.site/images/202310092251089.png)
+![202310092251089](https://zhou-fuyi.github.io/picx-images-hosting/202310092251089.9nzjhjg46y.webp)
 
 #### 1:50000地形要素数据要素内容与选取指标
 
-![](https://img.zhoujian.site/images/202310092252694.png)
+![202310092252694](https://zhou-fuyi.github.io/picx-images-hosting/202310092252694.7smyox3ol9.webp)
 
 ### 走天涯徐小洋公众号
 
